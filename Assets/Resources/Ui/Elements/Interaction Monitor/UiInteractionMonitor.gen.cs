@@ -5,13 +5,13 @@
 // -----------------------
 using UnityEngine.UIElements;
 
-namespace FoodForTheGods.Ui.Elements
+namespace FoodForTheGods
 {
     partial class UiInteractionMonitor
     {
         private Label keyLabel;
         private Label interactionNameLabel;
-
+    
         protected void AssignQueryResults(VisualElement root)
         {
             keyLabel = root.Q<Label>("KeyLabel");
