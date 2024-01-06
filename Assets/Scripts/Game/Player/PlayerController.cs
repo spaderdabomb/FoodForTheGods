@@ -34,6 +34,9 @@ namespace FoodForTheGods.Player
 		[SerializeField] float lookLimitV = 89f;
 
 		[Inject]
+		public Transform Transform { get; } = null!;
+
+		[Inject]
 		public CharacterController CharacterController { get; } = null!;
 
 		[Inject.FromChildren]
@@ -86,7 +89,7 @@ namespace FoodForTheGods.Player
 		{
 			Assert.IsTrue(IsOwner);
 
-			Vector3 movement = transform.right * m_MovementInput.x + transform.forward * m_MovementInput.y;
+			Vector3 movement = Transform.right * m_MovementInput.x + Transform.forward * m_MovementInput.y;
 			CharacterController.Move(movement * walkSpeed * Time.deltaTime);
 		}
 
