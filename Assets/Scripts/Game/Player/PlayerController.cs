@@ -90,7 +90,7 @@ namespace FoodForTheGods.Player
 			Assert.IsTrue(IsOwner);
 
 			Vector3 movement = Transform.right * m_MovementInput.x + Transform.forward * m_MovementInput.y;
-			CharacterController.Move(movement * walkSpeed * Time.deltaTime);
+			CharacterController.Move(movement * (walkSpeed * Time.deltaTime));
 		}
 
 		private void TickLook()
