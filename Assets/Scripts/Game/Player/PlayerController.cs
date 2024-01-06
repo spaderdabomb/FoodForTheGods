@@ -22,6 +22,7 @@ namespace FoodForTheGods.Player
 		// (owner only, not networked to server or other clients)
 		private Vector2 m_MovementInput = Vector2.zero;
 		private Vector2 m_LookInput = Vector2.zero;
+		private Vector2 m_PlayerRotation = Vector2.zero;
 		private Vector2 m_CameraRotation = Vector2.zero;
 
 		[Header("Base Movement")]
@@ -29,11 +30,13 @@ namespace FoodForTheGods.Player
 		[SerializeField] float gravity = 9.81f;
 		[SerializeField] float jumpForce = 5f;
 		[SerializeField] float lookSenseH = 0.1f;
-        [SerializeField] float lookSenseV = 0.1f;
-        [SerializeField] float lookLimitV = 89f;
+		[SerializeField] float lookSenseV = 0.1f;
+		[SerializeField] float lookLimitV = 89f;
 
 		[Inject]
-        public CharacterController CharacterController { get; } = null!;
+		public CharacterController CharacterController { get; } = null!;
+
+		[Inject.FromChildren]
 		public Camera Camera { get; set; } = null!;
 
 		public override void OnStartClient()
@@ -45,7 +48,6 @@ namespace FoodForTheGods.Player
 				return;
 			}
 
-			Camera = Camera.main;
 			MainInput.Player.SetCallbacks(this);
 			MainInput.Player.Enable();
 		}
@@ -53,7 +55,7 @@ namespace FoodForTheGods.Player
 		public void OnLook(InputAction.CallbackContext context)
 		{
 			m_LookInput = context.ReadValue<Vector2>();
-        }
+		}
 
 		public void OnMovement(InputAction.CallbackContext context)
 		{
@@ -84,24 +86,22 @@ namespace FoodForTheGods.Player
 		{
 			Assert.IsTrue(IsOwner);
 
-			Vector3 movement = new Vector3(m_MovementInput.x, 0f, m_MovementInput.y);
-			movement = Camera.transform.TransformDirection(movement) * walkSpeed;
-			
-			Vector3 newMovement = transform.right * m_MovementInput.x + transform.forward * m_MovementInput.y;
-            CharacterController.Move(newMovement * walkSpeed * Time.deltaTime);
-			Camera.transform.position = transform.position;
-        }
+			Vector3 movement = transform.right * m_MovementInput.x + transform.forward * m_MovementInput.y;
+			CharacterController.Move(movement * walkSpeed * Time.deltaTime);
+		}
 
 		private void TickLook()
 		{
 			Assert.IsTrue(IsOwner);
 
-            float cameraRotationX = m_CameraRotation.x + lookSenseH * m_LookInput.x;
-            float cameraRotationY = Mathf.Clamp(m_CameraRotation.y - lookSenseV * m_LookInput.y, -lookLimitV, lookLimitV);
+			m_CameraRotation.x += lookSenseH * m_LookInput.x;
+			m_CameraRotation.y = Mathf.Clamp(m_CameraRotation.y - lookSenseV * m_LookInput.y, -lookLimitV, lookLimitV);
 
-            m_CameraRotation = new Vector2(cameraRotationX, cameraRotationY);
-            Camera.transform.eulerAngles = new Vector3(m_CameraRotation.y, m_CameraRotation.x, 0.0f);
-			transform.eulerAngles = new Vector3(0f, Camera.transform.eulerAngles.y, 0f);
-        }
-    }
+			m_PlayerRotation.x += transform.eulerAngles.x + lookSenseH * m_LookInput.x;
+
+			transform.rotation = Quaternion.Euler(0f, m_PlayerRotation.x, 0f);
+			Camera.transform.rotation = Quaternion.Euler(m_CameraRotation.y, m_CameraRotation.x, 0f);
+
+		}
+	}
 }
