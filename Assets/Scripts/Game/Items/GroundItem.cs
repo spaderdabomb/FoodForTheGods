@@ -16,6 +16,7 @@ namespace FoodForTheGods.Items
 				return;
 			}
 		}
+#if UNITY_EDITOR
 		protected override void OnValidate()
 		{
 			base.OnValidate();
@@ -25,5 +26,6 @@ namespace FoodForTheGods.Items
 				gameObject.layer = LayerMask.NameToLayer("Item");
 			}
 		}
+#endif
 	}
 }
