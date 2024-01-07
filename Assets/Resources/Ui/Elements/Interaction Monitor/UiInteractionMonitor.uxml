@@ -1,4 +1,6 @@
-﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False" gen-cs-file="a7a1f79005e24e640b40c3eedf86cbf0" gen-cs-namespace="FoodForTheGods.Ui.Elements">
-    <ui:Label tabindex="-1" text="[E]" parse-escape-sequences="true" display-tooltip-when-elided="true" name="KeyLabel" />
-    <ui:Label tabindex="-1" text="Interact..." parse-escape-sequences="true" display-tooltip-when-elided="true" name="InteractionNameLabel" />
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False" gen-cs-file="a7a1f79005e24e640b40c3eedf86cbf0" gen-cs-namespace="FoodForTheGods.Ui.Elements">
+    <ui:VisualElement style="flex-grow: 1; align-items: center; justify-content: center; width: 100%; height: 100%;">
+        <ui:Label tabindex="-1" text="[E]" parse-escape-sequences="true" display-tooltip-when-elided="true" name="KeyLabel" style="font-size: 26px;" />
+        <ui:Label tabindex="-1" text="Interact..." parse-escape-sequences="true" display-tooltip-when-elided="true" name="InteractionNameLabel" style="font-size: 26px;" />
+    </ui:VisualElement>
 </ui:UXML>
