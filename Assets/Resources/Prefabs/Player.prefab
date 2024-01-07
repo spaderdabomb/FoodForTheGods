@@ -140,7 +140,6 @@ GameObject:
   - component: {fileID: 8690239937360170247}
   - component: {fileID: 4871792453384467069}
   - component: {fileID: 2035513374442029588}
-  - component: {fileID: 15978553613952264}
   - component: {fileID: 4989292737522299788}
   - component: {fileID: 978366925929293910}
   - component: {fileID: 4469744945063306681}
@@ -220,29 +219,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &15978553613952264
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2015641879999441665}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!143 &4989292737522299788
 CharacterController:
   m_ObjectHideFlags: 0
@@ -320,9 +296,9 @@ MonoBehaviour:
   _initializeOrder: 0
   _defaultDespawnType: 0
   NetworkObserver: {fileID: 0}
-  <PrefabId>k__BackingField: 11
+  <PrefabId>k__BackingField: 12
   <SpawnableCollectionId>k__BackingField: 0
-  _scenePathHash: 0
+  _scenePathHash: 2872492155
   <SceneId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 13628332130000829123
 --- !u!114 &6550531199901147000

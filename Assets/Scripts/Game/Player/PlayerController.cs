@@ -45,7 +45,9 @@ namespace FoodForTheGods.Player
 
 			if (!IsOwner)
 			{
-				return;
+				Camera.enabled = false;
+
+                return;
 			}
 
 			MainInput.Player.SetCallbacks(this);
