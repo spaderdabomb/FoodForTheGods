@@ -1,21 +1,36 @@
 
 using FishNet.Object;
+using FoodForTheGods.Game.Components;
+using FoodForTheGods.Player;
 using UnityEngine;
 
 namespace FoodForTheGods.Items
 {
-	public class GroundItem : NetworkBehaviour
+	public class GroundItem : NetworkBehaviour, IInteractionComponent
 	{
-		public override void OnStartClient()
-		{
-			base.OnStartClient();
+		public InteractionComponent InteractionComponent { get; } = new();
 
-			if (!IsOwner)
-			{
-				enabled = false;
-				return;
-			}
+		public override void OnStartNetwork()
+		{
+			base.OnStartNetwork();
+
+			InteractionComponent.AddInteraction(
+				"Grab",
+				CanInteractGrab,
+				OnInteractGrab
+			);
 		}
+
+		private bool OnInteractGrab(PlayerController player, bool asServer)
+		{
+			return true;
+		}
+
+		private bool CanInteractGrab(PlayerController player, bool asServer)
+		{
+			return true;
+		}
+
 #if UNITY_EDITOR
 		protected override void OnValidate()
 		{
