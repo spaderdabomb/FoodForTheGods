@@ -50,7 +50,7 @@ namespace FoodForTheGods.Ui.Elements
 				return;
 			}
 
-			// interactionNameLabel.text = m_Interactions.First().DisplayName;
+			interactionNameLabel.text = m_Interactions.First().DisplayName;
 		}
 
 		public void Interact()

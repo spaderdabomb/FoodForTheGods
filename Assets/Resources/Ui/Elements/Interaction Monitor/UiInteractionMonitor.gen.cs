@@ -5,7 +5,7 @@
 // -----------------------
 using UnityEngine.UIElements;
 
-namespace FoodForTheGods
+namespace FoodForTheGods.Ui.Elements
 {
     partial class UiInteractionMonitor
     {
