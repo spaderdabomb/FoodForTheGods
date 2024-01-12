@@ -143,7 +143,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 4c7fe8e1a3919c549a79a706afefd1ce, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 
@@ -291,9 +291,9 @@ CharacterController:
   m_Height: 2
   m_Radius: 0.2
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_StepOffset: 0.1
   m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
+  m_MinMoveDistance: 0.0001
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &7014661444271746363
 MonoBehaviour:
@@ -358,6 +358,7 @@ MonoBehaviour:
   _networkBehaviours:
   - {fileID: 7014661444271746363}
   - {fileID: 7139037565328098939}
+  - {fileID: 9032362864890973855}
   <ParentNetworkObject>k__BackingField: {fileID: 0}
   <ChildNetworkObjects>k__BackingField: []
   SerializedTransformProperties:
@@ -389,12 +390,23 @@ MonoBehaviour:
   _componentIndexCache: 1
   _addedNetworkObject: {fileID: 7690049162737959608}
   _networkObjectCache: {fileID: 7690049162737959608}
-  walkSpeed: 15
-  gravity: 9.81
-  jumpForce: 5
-  lookSenseH: 0.1
-  lookSenseV: 0.1
-  lookLimitV: 89
+  m_IsMoving: 0
+  m_IsJumping: 0
+  m_IsSprinting: 0
+  m_WalkAcceleration: 0.5
+  m_WalkSpeed: 10
+  m_SprintAcceleration: 1
+  m_SprintSpeed: 20
+  m_Drag: 0.25
+  m_Gravity: 25
+  m_JumpSpeed: 1.5
+  m_LookSenseH: 0.1
+  m_LookSenseV: 0.1
+  m_LookLimitV: 89
+  m_HoldToSprint: 1
+  m_GroundLayers:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &651645865043048716
 GameObject:
   m_ObjectHideFlags: 0
@@ -5607,7 +5619,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _componentIndexCache: 2
   _addedNetworkObject: {fileID: 7690049162737959608}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 7690049162737959608}
   <UIDocument>k__BackingField: {fileID: 923770357056461260}
 --- !u!114 &923770357056461260
 MonoBehaviour:

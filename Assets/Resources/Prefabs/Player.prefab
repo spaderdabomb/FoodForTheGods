@@ -243,7 +243,7 @@ CharacterController:
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &978366925929293910
 MonoBehaviour:
@@ -260,12 +260,23 @@ MonoBehaviour:
   _componentIndexCache: 0
   _addedNetworkObject: {fileID: 4469744945063306681}
   _networkObjectCache: {fileID: 4469744945063306681}
-  walkSpeed: 10
-  gravity: 9.81
-  jumpForce: 5
-  lookSenseH: 0.1
-  lookSenseV: 0.1
-  lookLimitV: 89
+  m_IsMoving: 0
+  m_IsJumping: 0
+  m_IsSprinting: 0
+  m_WalkAcceleration: 0.01
+  m_WalkSpeed: 5
+  m_SprintAcceleration: 0.01
+  m_SprintSpeed: 10
+  m_Drag: 0.25
+  m_Gravity: 9.81
+  m_JumpSpeed: 5
+  m_LookSenseH: 0.1
+  m_LookSenseV: 0.1
+  m_LookLimitV: 89
+  m_HoldToSprint: 1
+  m_GroundLayers:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &4469744945063306681
 MonoBehaviour:
   m_ObjectHideFlags: 0

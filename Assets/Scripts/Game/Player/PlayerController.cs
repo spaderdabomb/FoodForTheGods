@@ -4,10 +4,14 @@ using FishNet.Component.Transforming;
 using FishNet.Example.ColliderRollbacks;
 using FishNet.Object;
 using FoodForTheGods.Input;
+using GameKit.Utilities;
 using Medicine;
+using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
+using UnityEngine.PlayerLoop;
 
 namespace FoodForTheGods.Player
 {
@@ -19,28 +23,41 @@ namespace FoodForTheGods.Player
 		private MainInput? m_MainInput = null;
 		public MainInput MainInput => m_MainInput ??= new MainInput();
 
-		// (owner only, not networked to server or other clients)
 		private Vector2 m_MovementInput = Vector2.zero;
 		private Vector2 m_LookInput = Vector2.zero;
 		private Vector2 m_PlayerRotation = Vector2.zero;
 		private Vector2 m_CameraRotation = Vector2.zero;
-        private Vector3 m_PlayerVelocity = Vector3.zero;
-        private Vector3 m_PositionLastFrame = Vector3.zero;
 
-        private bool m_IsGrounded = false;
-		private bool m_IsMoving = false;
-		private float m_MovingThreshold = 0.01f;
+		[SerializeField] private bool m_IsMoving = false;
+		[SerializeField] private bool m_IsJumping = false;
+		[SerializeField] private bool m_IsSprinting = false;
 
-		[Header("Base Movement")]
-		[SerializeField] private float m_WalkSpeed = 0.5f;
+		private bool m_JumpPressed = false;
+        private bool m_SprintPressed = false;
+		private bool m_CanMove = false;
+		private bool m_CanSprint = false;
+		private bool m_CanJump = false;
+        private float m_MovingThreshold = 0.01f;
+		private float m_GroundedTimer = 0;
+		private float m_VerticalVelocity = 0f;
+
+        [Header("Base Movement")]
+		[SerializeField] private float m_WalkAcceleration = 0.5f;
+		[SerializeField] private float m_WalkSpeed = 10f;
+		[SerializeField] private float m_SprintAcceleration = 1f;
+		[SerializeField] private float m_SprintSpeed = 20f;
+		[SerializeField] private float m_Drag = 0.25f;
 		[SerializeField] private float m_Gravity = 9.81f;
-		[SerializeField] private float m_JumpForce = 5f;
+		[SerializeField] private float m_JumpSpeed = 50f;
 		[SerializeField] private float m_LookSenseH = 0.1f;
 		[SerializeField] private float m_LookSenseV = 0.1f;
 		[SerializeField] private float m_LookLimitV = 89f;
 
+		[Header("Settings")]
+		[SerializeField] private bool m_HoldToSprint = true;
+
 		[Header("Environment Details")]
-		[SerializeField] private LayerMask m_GroundLayers = null;
+		[SerializeField] private LayerMask m_GroundLayers;
 
 		[Inject]
 		public Transform Transform { get; } = null!;
@@ -59,35 +76,30 @@ namespace FoodForTheGods.Player
 			{
 				Camera.enabled = false;
 
-                return;
+				return;
 			}
 
 			MainInput.Player.SetCallbacks(this);
 			MainInput.Player.Enable();
 		}
 
-		public void OnLook(InputAction.CallbackContext context)
-		{
-			m_LookInput = context.ReadValue<Vector2>();
-		}
-
-		public void OnMovement(InputAction.CallbackContext context)
-		{
-			m_MovementInput = context.ReadValue<Vector2>();
-		}
-
-		private void Update()
+        private void Update()
 		{
 			if (!IsOwner)
 			{
 				return;
 			}
 
-			m_IsGrounded = IsGrounded();
+            ResetMovementProperties();
 
-			TickMovement();
+            m_CanJump = CanJump();		
+			m_CanMove = CanMove();		//order
+			m_CanSprint = CanSprint();  //matters
 
-			m_IsMoving = IsMoving();
+            m_IsMoving = IsMoving();
+            m_IsSprinting = (m_CanSprint && m_SprintPressed);
+
+            TickMovement();
 		}
 
 		private void LateUpdate()
@@ -98,40 +110,69 @@ namespace FoodForTheGods.Player
 			}
 
 			TickLook();
+		}
 
-			m_PositionLastFrame = transform.position;
-        }
-
-		private bool IsGrounded()
+		private void ResetMovementProperties()
 		{
-            bool isGrounded = Physics.CapsuleCast(
-                transform.position + Vector3.up * 0.1f, 
-				transform.position + Vector3.down * (CharacterController.height - 0.1f),
-                CharacterController.radius, 
-				Vector3.down, 
-				0.1f, 
-				m_GroundLayers
-            );
-
-			return isGrounded;
-        }
-
-		private bool IsMoving()
-		{
-			m_PlayerVelocity = (transform.position - m_PositionLastFrame) / Time.deltaTime;
-
-			return (m_PlayerVelocity.magnitude > m_MovingThreshold) ? true : false;
+            m_IsMoving = false;
         }
 
 		private void TickMovement()
+        {
+            Assert.IsTrue(IsOwner);
+
+			HandleVerticalMovement();
+            HandleLateralMovement();
+        }
+
+		private void HandleVerticalMovement()
 		{
-			Assert.IsTrue(IsOwner);
+			// Setup grounded timer to prevent jumping in consecutive frames
+			if (CharacterController.isGrounded)
+			    m_GroundedTimer = 0.2f;
+			
+			if (m_GroundedTimer > 0)
+			    m_GroundedTimer -= Time.deltaTime;
+			
+			if (CharacterController.isGrounded && m_VerticalVelocity < 0)
+			    m_VerticalVelocity = 0f;
+			
+			m_VerticalVelocity -= m_Gravity * Time.deltaTime;
+			
+			if (m_JumpPressed && m_CanJump)
+			{
+			    if (m_GroundedTimer > 0)
+			    {
+			        m_VerticalVelocity += Mathf.Sqrt(m_JumpSpeed * 3 * m_Gravity);
+			
+			        m_GroundedTimer = 0;
+			        m_JumpPressed = false;
+			    }
+            }
+        }
 
-			Vector3 movement = Transform.right * m_MovementInput.x + Transform.forward * m_MovementInput.y;
-			CharacterController.Move(movement * (m_WalkSpeed * Time.deltaTime));
-		}
+		private void HandleLateralMovement()
+		{
+			// State dependent acceleration and speed
+			float currentLateralAcceleration = m_IsSprinting ? m_SprintAcceleration : m_WalkAcceleration;
+			float clampLateralVelocityMagnitude = m_IsSprinting ? m_SprintSpeed : m_WalkSpeed;
+			
+			// Get lateral movement from input
+			Vector3 movementDirection = Transform.right * m_MovementInput.x + Transform.forward * m_MovementInput.y;
+			Vector3 movementDelta = movementDirection * currentLateralAcceleration;
+			Vector3 lateralVelocity = new Vector3(CharacterController.velocity.x, 0f, CharacterController.velocity.z);
+			Vector3 playerVelocityNew = Vector3.zero;
+			
+			playerVelocityNew += lateralVelocity + movementDelta;
+			playerVelocityNew -= playerVelocityNew.normalized * m_Drag;
+			playerVelocityNew = Vector3.ClampMagnitude(playerVelocityNew, clampLateralVelocityMagnitude);
 
-		private void TickLook()
+			playerVelocityNew.y = m_VerticalVelocity;
+			
+			CharacterController.Move(playerVelocityNew * Time.deltaTime);
+        }
+
+        private void TickLook()
 		{
 			Assert.IsTrue(IsOwner);
 
@@ -142,7 +183,62 @@ namespace FoodForTheGods.Player
 
 			transform.rotation = Quaternion.Euler(0f, m_PlayerRotation.x, 0f);
 			Camera.transform.rotation = Quaternion.Euler(m_CameraRotation.y, m_CameraRotation.x, 0f);
-
 		}
-	}
+
+
+        #region State Checks
+        private bool IsMoving()
+        {
+            return (CharacterController.velocity.magnitude > m_MovingThreshold) ? true : false;
+        }
+
+		private bool CanMove()
+		{
+			return true;
+		}
+
+        private bool CanSprint()
+        {
+            return m_CanMove;
+        }
+
+		private bool CanJump()
+		{
+			return CharacterController.isGrounded;
+		}
+
+        #endregion
+
+        #region Input
+        public void OnLook(InputAction.CallbackContext context)
+        {
+            m_LookInput = context.ReadValue<Vector2>();
+        }
+
+        public void OnMovement(InputAction.CallbackContext context)
+        {
+            m_MovementInput = context.ReadValue<Vector2>();
+        }
+
+        public void OnSprint(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                m_SprintPressed = m_HoldToSprint ? true : !m_IsSprinting;
+            }
+            else if (context.canceled)
+            {
+                m_SprintPressed = m_HoldToSprint ? false : m_SprintPressed;
+            }
+        }
+
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            if (!context.performed)
+                return;
+
+            m_JumpPressed = true;
+        }
+        #endregion
+    }
 }
