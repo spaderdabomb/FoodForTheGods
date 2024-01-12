@@ -28,8 +28,7 @@ namespace FoodForTheGods.Player
 		private Vector2 m_PlayerRotation = Vector2.zero;
 		private Vector2 m_CameraRotation = Vector2.zero;
 
-		[SerializeField] private bool m_IsMoving = false;
-		[SerializeField] private bool m_IsJumping = false;
+		[SerializeField] private bool m_IsMovingLaterally = false;
 		[SerializeField] private bool m_IsSprinting = false;
 
 		private bool m_JumpPressed = false;
@@ -42,13 +41,13 @@ namespace FoodForTheGods.Player
 		private float m_VerticalVelocity = 0f;
 
 		[Header("Base Movement")]
-		[SerializeField] private float m_WalkAcceleration = 0.5f;
-		[SerializeField] private float m_WalkSpeed = 10f;
+		[SerializeField] private float m_RunAcceleration = 0.5f;
+		[SerializeField] private float m_RunSpeed = 10f;
 		[SerializeField] private float m_SprintAcceleration = 1f;
 		[SerializeField] private float m_SprintSpeed = 20f;
 		[SerializeField] private float m_Drag = 0.25f;
-		[SerializeField] private float m_Gravity = 9.81f;
-		[SerializeField] private float m_JumpSpeed = 50f;
+		[SerializeField] private float m_Gravity = 25f;
+		[SerializeField] private float m_JumpSpeed = 1.5f;
 
 		[Header("Camera")]
 		[SerializeField] private float m_LookSenseH = 0.1f;
@@ -70,7 +69,10 @@ namespace FoodForTheGods.Player
 		[Inject]
 		public PlayerState PlayerState { get; } = null!;
 
-		[Inject.FromChildren]
+        [Inject]
+        public PlayerAnimation PlayerAnimation { get; } = null!;
+
+        [Inject.FromChildren]
 		public Camera Camera { get; set; } = null!;
 
 		public override void OnStartClient()
@@ -101,9 +103,8 @@ namespace FoodForTheGods.Player
 			m_CanMove = CanMove();		//order
 			m_CanSprint = CanSprint();  //matters
 
-            m_IsMoving = IsMoving();
-            m_IsSprinting = (m_CanSprint && m_SprintPressed);
-			m_IsJumping = IsJumping();
+            m_IsMovingLaterally = IsMovingLaterally();								 //order
+            m_IsSprinting = (m_CanSprint && m_SprintPressed && m_IsMovingLaterally); //matters
 
             TickMovement();
 			UpdateMovementState();
@@ -122,7 +123,7 @@ namespace FoodForTheGods.Player
 
 		private void ResetMovementProperties()
 		{
-            m_IsMoving = false;
+            m_IsMovingLaterally = false;
         }
 
 		private void TickMovement()
@@ -137,33 +138,33 @@ namespace FoodForTheGods.Player
 		{
 			// Setup grounded timer to prevent jumping in consecutive frames
 			if (CharacterController.isGrounded)
-			    m_GroundedTimer = 0.2f;
+				m_GroundedTimer = 0.2f;
 			
 			if (m_GroundedTimer > 0)
-			    m_GroundedTimer -= Time.deltaTime;
+				m_GroundedTimer -= Time.deltaTime;
 			
 			if (CharacterController.isGrounded && m_VerticalVelocity < 0)
-			    m_VerticalVelocity = 0f;
+				m_VerticalVelocity = 0f;
 			
 			m_VerticalVelocity -= m_Gravity * Time.deltaTime;
 			
 			if (m_JumpPressed && m_CanJump)
 			{
-			    if (m_GroundedTimer > 0)
-			    {
-			        m_VerticalVelocity += Mathf.Sqrt(m_JumpSpeed * 3 * m_Gravity);
-			
-			        m_GroundedTimer = 0;
-			        m_JumpPressed = false;
-			    }
-            }
-        }
+				if (m_GroundedTimer > 0)
+				{
+					m_VerticalVelocity += Mathf.Sqrt(m_JumpSpeed * 3 * m_Gravity);
+					
+					m_GroundedTimer = 0;
+					m_JumpPressed = false;
+				}
+			}
+		}
 
 		private void HandleLateralMovement()
 		{
 			// State dependent acceleration and speed
-			float currentLateralAcceleration = m_IsSprinting ? m_SprintAcceleration : m_WalkAcceleration;
-			float clampLateralVelocityMagnitude = m_IsSprinting ? m_SprintSpeed : m_WalkSpeed;
+			float currentLateralAcceleration = m_IsSprinting ? m_SprintAcceleration : m_RunAcceleration;
+			float clampLateralVelocityMagnitude = m_IsSprinting ? m_SprintSpeed : m_RunSpeed;
 			
 			// Get lateral movement from input
 			Vector3 movementDirection = Transform.right * m_MovementInput.x + Transform.forward * m_MovementInput.y;
@@ -182,27 +183,24 @@ namespace FoodForTheGods.Player
 
 		private void UpdateMovementState()
 		{
-            if (PlayerState == null)
-			{
-				Debug.Log("Player State is not setup correctly");
-				return;
-			}
-
 			// Control Move State
-			PlayerMovementState walkOrSprintState = m_IsSprinting ? PlayerMovementState.Sprinting : PlayerMovementState.Walking;
-			PlayerState.SetPlayerMovementState(m_IsMoving ? walkOrSprintState : PlayerMovementState.Idling);
+			PlayerMovementState runOrSprintState = m_IsSprinting ? PlayerMovementState.Sprinting : PlayerMovementState.Running;
+			PlayerState.SetPlayerMovementState(m_IsMovingLaterally ? runOrSprintState : PlayerMovementState.Idling);
 
 			// Control Jump State
-			if (m_IsJumping && CharacterController.velocity.y >= 0f)
+			if (!CharacterController.isGrounded && CharacterController.velocity.y >= 0f)
 			{
 				PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingUp);
             }
-			else if (m_IsJumping && CharacterController.velocity.y < 0f)
+			else if (!CharacterController.isGrounded && CharacterController.velocity.y < 0f)
 			{
                 PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingDown);
 
             }
-		}
+
+			PlayerAnimation.UpdateAnimationState(m_IsMovingLaterally, m_IsSprinting, CharacterController.isGrounded);
+
+        }
 
         private void TickLook()
 		{
@@ -219,15 +217,12 @@ namespace FoodForTheGods.Player
 
 
         #region State Checks
-        private bool IsMoving()
+        private bool IsMovingLaterally()
         {
-            return (CharacterController.velocity.magnitude > m_MovingThreshold) ? true : false;
-        }
+			Vector3 lateralVelocity = new Vector3(CharacterController.velocity.x, 0f, CharacterController.velocity.z);
 
-		private bool IsJumping()
-		{
-			return !CharacterController.isGrounded;
-		}
+            return (lateralVelocity.magnitude > m_MovingThreshold) ? true : false;
+        }
 
 		private bool CanMove()
 		{

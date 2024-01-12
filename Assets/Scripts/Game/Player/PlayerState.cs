@@ -49,7 +49,7 @@ namespace FoodForTheGods.Player
     public enum PlayerMovementState
     {
         Idling = 0,
-        Walking = 1,
+        Running = 1,
         Sprinting = 2,
         JumpingUp = 4,
         JumpingDown = 8,
