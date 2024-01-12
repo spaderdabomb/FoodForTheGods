@@ -33,15 +33,15 @@ namespace FoodForTheGods.Player
 		[SerializeField] private bool m_IsSprinting = false;
 
 		private bool m_JumpPressed = false;
-        private bool m_SprintPressed = false;
+		private bool m_SprintPressed = false;
 		private bool m_CanMove = false;
 		private bool m_CanSprint = false;
 		private bool m_CanJump = false;
-        private float m_MovingThreshold = 0.01f;
+		private float m_MovingThreshold = 0.01f;
 		private float m_GroundedTimer = 0;
 		private float m_VerticalVelocity = 0f;
 
-        [Header("Base Movement")]
+		[Header("Base Movement")]
 		[SerializeField] private float m_WalkAcceleration = 0.5f;
 		[SerializeField] private float m_WalkSpeed = 10f;
 		[SerializeField] private float m_SprintAcceleration = 1f;
@@ -49,6 +49,8 @@ namespace FoodForTheGods.Player
 		[SerializeField] private float m_Drag = 0.25f;
 		[SerializeField] private float m_Gravity = 9.81f;
 		[SerializeField] private float m_JumpSpeed = 50f;
+
+		[Header("Camera")]
 		[SerializeField] private float m_LookSenseH = 0.1f;
 		[SerializeField] private float m_LookSenseV = 0.1f;
 		[SerializeField] private float m_LookLimitV = 89f;
@@ -64,6 +66,9 @@ namespace FoodForTheGods.Player
 
 		[Inject]
 		public CharacterController CharacterController { get; } = null!;
+
+		[Inject]
+		public PlayerState PlayerState { get; } = null!;
 
 		[Inject.FromChildren]
 		public Camera Camera { get; set; } = null!;
@@ -98,9 +103,12 @@ namespace FoodForTheGods.Player
 
             m_IsMoving = IsMoving();
             m_IsSprinting = (m_CanSprint && m_SprintPressed);
+			m_IsJumping = IsJumping();
 
             TickMovement();
-		}
+			UpdateMovementState();
+
+        }
 
 		private void LateUpdate()
 		{
@@ -172,6 +180,30 @@ namespace FoodForTheGods.Player
 			CharacterController.Move(playerVelocityNew * Time.deltaTime);
         }
 
+		private void UpdateMovementState()
+		{
+            if (PlayerState == null)
+			{
+				Debug.Log("Player State is not setup correctly");
+				return;
+			}
+
+			// Control Move State
+			PlayerMovementState walkOrSprintState = m_IsSprinting ? PlayerMovementState.Sprinting : PlayerMovementState.Walking;
+			PlayerState.SetPlayerMovementState(m_IsMoving ? walkOrSprintState : PlayerMovementState.Idling);
+
+			// Control Jump State
+			if (m_IsJumping && CharacterController.velocity.y >= 0f)
+			{
+				PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingUp);
+            }
+			else if (m_IsJumping && CharacterController.velocity.y < 0f)
+			{
+                PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingDown);
+
+            }
+		}
+
         private void TickLook()
 		{
 			Assert.IsTrue(IsOwner);
@@ -191,6 +223,11 @@ namespace FoodForTheGods.Player
         {
             return (CharacterController.velocity.magnitude > m_MovingThreshold) ? true : false;
         }
+
+		private bool IsJumping()
+		{
+			return !CharacterController.isGrounded;
+		}
 
 		private bool CanMove()
 		{
