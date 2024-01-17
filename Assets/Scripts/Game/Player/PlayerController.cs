@@ -69,10 +69,10 @@ namespace FoodForTheGods.Player
 		[Inject]
 		public PlayerState PlayerState { get; } = null!;
 
-        [Inject]
-        public PlayerAnimation PlayerAnimation { get; } = null!;
+		[Inject]
+		public PlayerAnimation PlayerAnimation { get; } = null!;
 
-        [Inject.FromChildren]
+		[Inject.FromChildren]
 		public Camera Camera { get; set; } = null!;
 
 		public override void OnStartClient()
@@ -90,26 +90,26 @@ namespace FoodForTheGods.Player
 			MainInput.Player.Enable();
 		}
 
-        private void Update()
+		private void Update()
 		{
 			if (!IsOwner)
 			{
 				return;
 			}
 
-            ResetMovementProperties();
+			ResetMovementProperties();
 
-            m_CanJump = CanJump();		
+			m_CanJump = CanJump();		
 			m_CanMove = CanMove();		//order
 			m_CanSprint = CanSprint();  //matters
 
-            m_IsMovingLaterally = IsMovingLaterally();								 //order
-            m_IsSprinting = (m_CanSprint && m_SprintPressed && m_IsMovingLaterally); //matters
+			m_IsMovingLaterally = IsMovingLaterally();								 //order
+			m_IsSprinting = (m_CanSprint && m_SprintPressed && m_IsMovingLaterally); //matters
 
-            TickMovement();
+			TickMovement();
 			UpdateMovementState();
 
-        }
+		}
 
 		private void LateUpdate()
 		{
@@ -123,16 +123,16 @@ namespace FoodForTheGods.Player
 
 		private void ResetMovementProperties()
 		{
-            m_IsMovingLaterally = false;
-        }
+			m_IsMovingLaterally = false;
+		}
 
 		private void TickMovement()
-        {
-            Assert.IsTrue(IsOwner);
+		{
+			Assert.IsTrue(IsOwner);
 
 			HandleVerticalMovement();
-            HandleLateralMovement();
-        }
+			HandleLateralMovement();
+		}
 
 		private void HandleVerticalMovement()
 		{
@@ -179,7 +179,7 @@ namespace FoodForTheGods.Player
 			playerVelocityNew.y = m_VerticalVelocity;
 			
 			CharacterController.Move(playerVelocityNew * Time.deltaTime);
-        }
+		}
 
 		private void UpdateMovementState()
 		{
@@ -191,18 +191,18 @@ namespace FoodForTheGods.Player
 			if (!CharacterController.isGrounded && CharacterController.velocity.y >= 0f)
 			{
 				PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingUp);
-            }
+			}
 			else if (!CharacterController.isGrounded && CharacterController.velocity.y < 0f)
 			{
-                PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingDown);
+				PlayerState.AddPlayerMovementState(PlayerMovementState.JumpingDown);
 
-            }
+			}
 
 			PlayerAnimation.UpdateAnimationState(m_IsMovingLaterally, m_IsSprinting, CharacterController.isGrounded);
 
-        }
+		}
 
-        private void TickLook()
+		private void TickLook()
 		{
 			Assert.IsTrue(IsOwner);
 
@@ -216,61 +216,61 @@ namespace FoodForTheGods.Player
 		}
 
 
-        #region State Checks
-        private bool IsMovingLaterally()
-        {
+		#region State Checks
+		private bool IsMovingLaterally()
+		{
 			Vector3 lateralVelocity = new Vector3(CharacterController.velocity.x, 0f, CharacterController.velocity.z);
 
-            return (lateralVelocity.magnitude > m_MovingThreshold) ? true : false;
-        }
+			return (lateralVelocity.magnitude > m_MovingThreshold) ? true : false;
+		}
 
 		private bool CanMove()
 		{
 			return true;
 		}
 
-        private bool CanSprint()
-        {
-            return m_CanMove;
-        }
+		private bool CanSprint()
+		{
+			return m_CanMove;
+		}
 
 		private bool CanJump()
 		{
 			return CharacterController.isGrounded;
 		}
 
-        #endregion
+		#endregion
 
-        #region Input
-        public void OnLook(InputAction.CallbackContext context)
-        {
-            m_LookInput = context.ReadValue<Vector2>();
-        }
+		#region Input
+		public void OnLook(InputAction.CallbackContext context)
+		{
+			m_LookInput = context.ReadValue<Vector2>();
+		}
 
-        public void OnMovement(InputAction.CallbackContext context)
-        {
-            m_MovementInput = context.ReadValue<Vector2>();
-        }
+		public void OnMovement(InputAction.CallbackContext context)
+		{
+			m_MovementInput = context.ReadValue<Vector2>();
+		}
 
-        public void OnSprint(InputAction.CallbackContext context)
-        {
-            if (context.performed)
-            {
-                m_SprintPressed = m_HoldToSprint ? true : !m_IsSprinting;
-            }
-            else if (context.canceled)
-            {
-                m_SprintPressed = m_HoldToSprint ? false : m_SprintPressed;
-            }
-        }
+		public void OnSprint(InputAction.CallbackContext context)
+		{
+			if (context.performed)
+			{
+				m_SprintPressed = m_HoldToSprint ? true : !m_IsSprinting;
+			}
+			else if (context.canceled)
+			{
+				m_SprintPressed = m_HoldToSprint ? false : m_SprintPressed;
+			}
+		}
 
-        public void OnJump(InputAction.CallbackContext context)
-        {
-            if (!context.performed)
-                return;
+		public void OnJump(InputAction.CallbackContext context)
+		{
+			if (!context.performed)
+				return;
 
-            m_JumpPressed = true;
-        }
-        #endregion
-    }
+			m_JumpPressed = true;
+		}
+		#endregion
+	}
 }
