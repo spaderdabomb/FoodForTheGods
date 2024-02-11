@@ -1,11 +1,12 @@
 ﻿
 using FoodForTheGods.Framework.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace FoodForTheGods.Framework.ScriptableObjects
 {
-	public class BaseScriptableObject : ScriptableObject
+	public class BaseScriptableObject : SerializedScriptableObject
 	{
 		/// <summary>
 		/// The unique type id of this <see cref="ScriptableObject"/> that is used to identify it.
